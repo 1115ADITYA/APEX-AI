@@ -52,49 +52,33 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const statusText = document.createElement('p');
-            statusText.style.color = '#fbbf24'; // Warning color
-            statusText.style.fontFamily = 'monospace';
-            document.body.appendChild(statusText);
-
-            try {
-                statusText.innerText = "Initializing Supabase...";
-                const sb = await getSupabase();
-                
-                statusText.innerText = "Checking session...";
-                const { data: { session }, error } = await sb.auth.getSession();
-                
-                if (error) {
-                    statusText.innerText = `Error getting session: ${error.message}`;
-                    return;
-                }
-
-                if (!session) {
-                    // Stop redirecting instantly so we can see the problem
-                    const fallbackToken = localStorage.getItem('apex_jwt_token');
-                    statusText.innerHTML = `❌ No active session found.<br><br>
-                        Debug Info:<br>
-                        localStorage token exists? ${!!fallbackToken}<br>
-                        Origin: ${window.location.origin}<br><br>
-                        <a href="login.html" style="color: white; text-decoration: underline;">Go back to Login manually</a>`;
-                    return;
-                }
-
-                statusText.innerText = "✅ Session valid. You are authenticated.";
-                statusText.style.color = '#22c55e'; // Green
-
-                // Handle Logout
-                document.getElementById('logout-btn').addEventListener('click', async () => {
-                    await sb.auth.signOut();
-                    localStorage.removeItem('apex_jwt_token');
-                    window.location.href = 'index.html';
-                });
-            } catch (err) {
-                statusText.innerText = `Catastrophic Error: ${err.message}`;
+            // 1. Initialize Supabase silently
+            let supabaseClient = null;
+            if (window.APEX_CONFIG && window.APEX_CONFIG.SUPABASE_URL && window.APEX_CONFIG.SUPABASE_URL !== 'https://your-project.supabase.co') {
+                supabaseClient = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
+            } else {
+                const url = 'https://mhxmxqfpotvjkfmmjjkr.supabase.co';
+                const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oeG14cWZwb3R2amtmbW1qamtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzczNzYsImV4cCI6MjA5NzE1MzM3Nn0.IEwHWc5gpgf3wDG3e-1gju-bibkJFQvGQbDgXmbka_s';
+                supabaseClient = window.supabase.createClient(url, key);
             }
+
+            // 2. Check session in the background
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            // 3. If no session, silently boot back to login
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // 4. Setup Logout button
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await supabaseClient.auth.signOut();
+                localStorage.removeItem('apex_jwt_token');
+                window.location.href = 'index.html';
+            });
         });
     </script>
 </body>

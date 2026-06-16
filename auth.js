@@ -2,13 +2,13 @@
 // SUPABASE CONFIGURATION
 // ==========================================
 
-let supabase = null;
+let supabaseClient = null;
 
 function initSupabase() {
     // Option 1: Use local config.js (for Live Server / local dev)
     if (window.APEX_CONFIG && window.APEX_CONFIG.SUPABASE_URL && window.APEX_CONFIG.SUPABASE_URL !== 'https://your-project.supabase.co') {
         try {
-            supabase = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
+            supabaseClient = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
             console.log("Supabase initialized from config.js");
             return;
         } catch (e) {
@@ -18,10 +18,13 @@ function initSupabase() {
 
     // Option 2: Use /api/env route (for Vercel deployment)
     fetch('/api/env')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('API returned ' + response.status);
+            return response.json();
+        })
         .then(config => {
             if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
-                supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
                 console.log("Supabase initialized from /api/env");
             } else {
                 console.warn("Supabase credentials missing from /api/env");
@@ -107,10 +110,10 @@ if (signupForm) {
         btn.disabled = true;
 
         try {
-            if (!supabase) throw new Error('Supabase not connected. Please run via Vercel.');
+            if (!supabaseClient) throw new Error('Supabase not connected. Please run via Vercel.');
 
             // Send OTP to email using Supabase magic link / OTP
-            const { data, error } = await supabase.auth.signInWithOtp({
+            const { data, error } = await supabaseClient.auth.signInWithOtp({
                 email: email,
             });
 
@@ -141,9 +144,9 @@ if (verifyForm) {
         btn.disabled = true;
 
         try {
-            if (!supabase) throw new Error('Supabase not connected.');
+            if (!supabaseClient) throw new Error('Supabase not connected.');
 
-            const { data, error } = await supabase.auth.verifyOtp({
+            const { data, error } = await supabaseClient.auth.verifyOtp({
                 email: currentEmail,
                 token: code,
                 type: 'email'
@@ -186,17 +189,17 @@ if (passwordForm) {
         btn.disabled = true;
 
         try {
-            if (!supabase) throw new Error('Supabase not connected.');
+            if (!supabaseClient) throw new Error('Supabase not connected.');
 
             // Update the user's password (user is already logged in after OTP verify)
-            const { data, error } = await supabase.auth.updateUser({
+            const { data, error } = await supabaseClient.auth.updateUser({
                 password: password
             });
 
             if (error) throw error;
 
             // Get the session for JWT
-            const { data: sessionData } = await supabase.auth.getSession();
+            const { data: sessionData } = await supabaseClient.auth.getSession();
             if (sessionData.session) {
                 localStorage.setItem('apex_jwt_token', sessionData.session.access_token);
             }
@@ -231,9 +234,9 @@ if (loginForm) {
         btn.disabled = true;
 
         try {
-            if (!supabase) throw new Error('Supabase not connected. Please run via Vercel.');
+            if (!supabaseClient) throw new Error('Supabase not connected. Please run via Vercel.');
 
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
@@ -258,3 +261,4 @@ if (loginForm) {
 
 // Initialize Supabase in the background
 initSupabase();
+

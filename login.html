@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX AI | Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+</head>
+<body class="auth-body">
+    <div class="auth-layout">
+        <!-- Left Side Image -->
+        <div class="auth-image-container">
+            <img src="login side.avif" alt="Login Background" class="auth-bg-image">
+            <div class="auth-image-overlay"></div>
+            <div class="auth-brand">
+                <a href="index.html" class="logo" style="text-decoration: none; color: white;">APEX AI</a>
+                <p>Enter the intelligence matrix.</p>
+            </div>
+        </div>
+
+        <!-- Right Side Form -->
+        <div class="auth-form-container">
+            <div class="glass-form-card">
+                
+                <!-- Step 1: Login View (Default) -->
+                <div id="login-view" class="auth-view active">
+                    <h2>Welcome Back</h2>
+                    <p class="auth-subtitle">Sign in to access your intelligence dashboard.</p>
+                    <form id="login-form">
+                        <div class="input-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required placeholder="athlete@apex.ai">
+                        </div>
+                        <div class="input-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                        </div>
+                        <div class="auth-actions">
+                            <button type="submit" class="btn btn-primary full-width" id="login-btn">Sign In</button>
+                        </div>
+                    </form>
+                    <div class="auth-footer">
+                        <p>Don't have an account? <a href="#" id="go-to-signup">Sign up</a></p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Signup - Email Only -->
+                <div id="signup-view" class="auth-view">
+                    <h2>Create Account</h2>
+                    <p class="auth-subtitle">Enter your email to get started.</p>
+                    <form id="signup-form">
+                        <div class="input-group">
+                            <label for="signup-email">Email</label>
+                            <input type="email" id="signup-email" required placeholder="athlete@apex.ai">
+                        </div>
+                        <div class="auth-actions">
+                            <button type="submit" class="btn btn-primary full-width" id="signup-btn">Verify Email</button>
+                        </div>
+                    </form>
+                    <div class="auth-footer">
+                        <p>Already have an account? <a href="#" id="go-to-login">Sign in</a></p>
+                    </div>
+                </div>
+
+                <!-- Step 3: OTP Verification -->
+                <div id="verify-view" class="auth-view">
+                    <h2>Verify Email</h2>
+                    <p class="auth-subtitle" id="verify-subtitle">We sent a code to your email.</p>
+                    <form id="verify-form">
+                        <div class="input-group">
+                            <label for="verify-code">6-Digit Code</label>
+                            <input type="text" id="verify-code" required placeholder="000000" maxlength="6" style="text-align: center; letter-spacing: 0.5em; font-size: 1.5rem;">
+                        </div>
+                        <div class="auth-actions">
+                            <button type="submit" class="btn btn-primary full-width" id="verify-btn">Verify Account</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 4: Set Password (after email is verified) -->
+                <div id="password-view" class="auth-view">
+                    <h2>Set Your Password</h2>
+                    <p class="auth-subtitle">Your email is verified. Now create a secure password.</p>
+                    <form id="password-form">
+                        <div class="input-group">
+                            <label for="set-password">Password</label>
+                            <input type="password" id="set-password" required placeholder="Create a secure password" minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <label for="confirm-password">Confirm Password</label>
+                            <input type="password" id="confirm-password" required placeholder="Confirm your password" minlength="6">
+                        </div>
+                        <div class="auth-actions">
+                            <button type="submit" class="btn btn-primary full-width" id="password-btn">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Step 5: Success -->
+                <div id="success-view" class="auth-view" style="text-align: center;">
+                    <h2 style="color: #22c55e;">Welcome to APEX AI</h2>
+                    <p class="auth-subtitle">Account created successfully. Redirecting...</p>
+                </div>
+
+                <div id="auth-error" class="auth-error"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>

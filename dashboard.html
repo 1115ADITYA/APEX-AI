@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX AI | Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+        .logout-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .logout-btn:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <p>Welcome to the matrix. You are successfully logged in.</p>
+    <button class="logout-btn" id="logout-btn">Logout</button>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusText = document.createElement('p');
+            statusText.style.color = '#fbbf24'; // Warning color
+            statusText.style.fontFamily = 'monospace';
+            document.body.appendChild(statusText);
+
+            try {
+                statusText.innerText = "Initializing Supabase...";
+                const sb = await getSupabase();
+                
+                statusText.innerText = "Checking session...";
+                const { data: { session }, error } = await sb.auth.getSession();
+                
+                if (error) {
+                    statusText.innerText = `Error getting session: ${error.message}`;
+                    return;
+                }
+
+                if (!session) {
+                    // Stop redirecting instantly so we can see the problem
+                    const fallbackToken = localStorage.getItem('apex_jwt_token');
+                    statusText.innerHTML = `❌ No active session found.<br><br>
+                        Debug Info:<br>
+                        localStorage token exists? ${!!fallbackToken}<br>
+                        Origin: ${window.location.origin}<br><br>
+                        <a href="login.html" style="color: white; text-decoration: underline;">Go back to Login manually</a>`;
+                    return;
+                }
+
+                statusText.innerText = "✅ Session valid. You are authenticated.";
+                statusText.style.color = '#22c55e'; // Green
+
+                // Handle Logout
+                document.getElementById('logout-btn').addEventListener('click', async () => {
+                    await sb.auth.signOut();
+                    localStorage.removeItem('apex_jwt_token');
+                    window.location.href = 'index.html';
+                });
+            } catch (err) {
+                statusText.innerText = `Catastrophic Error: ${err.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

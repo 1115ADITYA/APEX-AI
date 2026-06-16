@@ -133,7 +133,7 @@ async function handleAuthRedirect() {
             localStorage.setItem('apex_jwt_token', session.access_token);
             switchView(successView);
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard.html';
             }, 2000);
             return true;
         }
@@ -178,11 +178,20 @@ if (signupForm) {
 
             if (error) throw error;
 
-            // Show "check your email" view
-            currentEmail = email;
-            document.getElementById('verify-subtitle').textContent =
-                `We sent a confirmation link to ${email}. Click it to verify your account.`;
-            switchView(verifyView);
+            if (data.session) {
+                // Email confirmation is turned OFF, logged in automatically!
+                localStorage.setItem('apex_jwt_token', data.session.access_token);
+                switchView(successView);
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            } else {
+                // Email confirmation is ON, show verify view
+                currentEmail = email;
+                document.getElementById('verify-subtitle').textContent =
+                    `We sent a confirmation link to ${email}. Click it to verify your account.`;
+                switchView(verifyView);
+            }
 
         } catch (error) {
             showError(error.message);
@@ -220,7 +229,7 @@ if (loginForm) {
             switchView(successView);
 
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard.html';
             }, 2000);
 
         } catch (error) {

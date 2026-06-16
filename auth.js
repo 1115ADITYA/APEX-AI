@@ -5,18 +5,30 @@
 let supabase = null;
 
 function initSupabase() {
+    // Option 1: Use local config.js (for Live Server / local dev)
+    if (window.APEX_CONFIG && window.APEX_CONFIG.SUPABASE_URL && window.APEX_CONFIG.SUPABASE_URL !== 'https://your-project.supabase.co') {
+        try {
+            supabase = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
+            console.log("Supabase initialized from config.js");
+            return;
+        } catch (e) {
+            console.warn("Failed to init Supabase from config.js", e);
+        }
+    }
+
+    // Option 2: Use /api/env route (for Vercel deployment)
     fetch('/api/env')
         .then(response => response.json())
         .then(config => {
             if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
                 supabase = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-                console.log("Supabase initialized successfully.");
+                console.log("Supabase initialized from /api/env");
             } else {
                 console.warn("Supabase credentials missing from /api/env");
             }
         })
         .catch(e => {
-            console.warn("Supabase client failed to initialize. Are you running via Vercel?", e);
+            console.warn("Could not reach /api/env. Add your keys to config.js for local dev.", e);
         });
 }
 

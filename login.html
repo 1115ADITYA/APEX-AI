@@ -49,17 +49,25 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Signup - Email Only -->
+                <!-- Step 2: Signup - Email + Password -->
                 <div id="signup-view" class="auth-view">
                     <h2>Create Account</h2>
-                    <p class="auth-subtitle">Enter your email to get started.</p>
+                    <p class="auth-subtitle">Enter your email and create a password.</p>
                     <form id="signup-form">
                         <div class="input-group">
                             <label for="signup-email">Email</label>
                             <input type="email" id="signup-email" required placeholder="athlete@apex.ai">
                         </div>
+                        <div class="input-group">
+                            <label for="signup-password">Password</label>
+                            <input type="password" id="signup-password" required placeholder="Create a secure password" minlength="6">
+                        </div>
+                        <div class="input-group">
+                            <label for="signup-confirm-password">Confirm Password</label>
+                            <input type="password" id="signup-confirm-password" required placeholder="Confirm your password" minlength="6">
+                        </div>
                         <div class="auth-actions">
-                            <button type="submit" class="btn btn-primary full-width" id="signup-btn">Verify Email</button>
+                            <button type="submit" class="btn btn-primary full-width" id="signup-btn">Create Account</button>
                         </div>
                     </form>
                     <div class="auth-footer">
@@ -67,44 +75,21 @@
                     </div>
                 </div>
 
-                <!-- Step 3: OTP Verification -->
-                <div id="verify-view" class="auth-view">
-                    <h2>Verify Email</h2>
-                    <p class="auth-subtitle" id="verify-subtitle">We sent a code to your email.</p>
-                    <form id="verify-form">
-                        <div class="input-group">
-                            <label for="verify-code">6-Digit Code</label>
-                            <input type="text" id="verify-code" required placeholder="000000" maxlength="6" style="text-align: center; letter-spacing: 0.5em; font-size: 1.5rem;">
-                        </div>
-                        <div class="auth-actions">
-                            <button type="submit" class="btn btn-primary full-width" id="verify-btn">Verify Account</button>
-                        </div>
-                    </form>
+                <!-- Step 3: Check Email Confirmation -->
+                <div id="verify-view" class="auth-view" style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📧</div>
+                    <h2>Check Your Email</h2>
+                    <p class="auth-subtitle" id="verify-subtitle">We sent a confirmation link to your email. Click it to verify your account.</p>
+                    <p class="auth-subtitle" style="margin-top: 1.5rem; opacity: 0.6; font-size: 0.85rem;">After confirming, come back here and sign in.</p>
+                    <div class="auth-actions" style="margin-top: 2rem;">
+                        <button type="button" class="btn btn-secondary full-width" id="back-to-login-btn">Back to Sign In</button>
+                    </div>
                 </div>
 
-                <!-- Step 4: Set Password (after email is verified) -->
-                <div id="password-view" class="auth-view">
-                    <h2>Set Your Password</h2>
-                    <p class="auth-subtitle">Your email is verified. Now create a secure password.</p>
-                    <form id="password-form">
-                        <div class="input-group">
-                            <label for="set-password">Password</label>
-                            <input type="password" id="set-password" required placeholder="Create a secure password" minlength="6">
-                        </div>
-                        <div class="input-group">
-                            <label for="confirm-password">Confirm Password</label>
-                            <input type="password" id="confirm-password" required placeholder="Confirm your password" minlength="6">
-                        </div>
-                        <div class="auth-actions">
-                            <button type="submit" class="btn btn-primary full-width" id="password-btn">Create Account</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Step 5: Success -->
+                <!-- Step 4: Success -->
                 <div id="success-view" class="auth-view" style="text-align: center;">
                     <h2 style="color: #22c55e;">Welcome to APEX AI</h2>
-                    <p class="auth-subtitle">Account created successfully. Redirecting...</p>
+                    <p class="auth-subtitle">Signed in successfully. Redirecting...</p>
                 </div>
 
                 <div id="auth-error" class="auth-error"></div>

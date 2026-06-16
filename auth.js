@@ -3,7 +3,7 @@
 // ==========================================
 
 let supabaseClient = null;
-let supabaseReady = null; // Promise that resolves when Supabase is initialized
+let supabaseReady = null;
 
 function initSupabase() {
     supabaseReady = new Promise(async (resolve) => {
@@ -51,7 +51,7 @@ function initSupabase() {
     });
 }
 
-// Helper: wait for Supabase to be ready before any auth action
+// Helper: wait for Supabase to be ready
 async function getSupabase() {
     await supabaseReady;
     if (!supabaseClient) {
@@ -64,34 +64,27 @@ async function getSupabase() {
 // DOM ELEMENTS
 // ==========================================
 
-// Views
 const loginView = document.getElementById('login-view');
 const signupView = document.getElementById('signup-view');
 const verifyView = document.getElementById('verify-view');
-const passwordView = document.getElementById('password-view');
 const successView = document.getElementById('success-view');
 
-// Forms
 const loginForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form');
-const verifyForm = document.getElementById('verify-form');
-const passwordForm = document.getElementById('password-form');
 
-// Navigation
 const goToSignup = document.getElementById('go-to-signup');
 const goToLogin = document.getElementById('go-to-login');
+const backToLoginBtn = document.getElementById('back-to-login-btn');
 
-// Error Box
 const authError = document.getElementById('auth-error');
 
-// State
 let currentEmail = '';
 
 // ==========================================
-// VIEW SWITCHING LOGIC
+// VIEW SWITCHING
 // ==========================================
 function switchView(viewElement) {
-    [loginView, signupView, verifyView, passwordView, successView].forEach(v => {
+    [loginView, signupView, verifyView, successView].forEach(v => {
         if (v) v.classList.remove('active');
     });
     if (viewElement) viewElement.classList.add('active');
@@ -112,6 +105,12 @@ if (goToLogin) {
     });
 }
 
+if (backToLoginBtn) {
+    backToLoginBtn.addEventListener('click', () => {
+        switchView(loginView);
+    });
+}
+
 function showError(msg) {
     if (authError) authError.textContent = msg;
 }
@@ -121,85 +120,41 @@ if (window.location.hash === '#signup') {
 }
 
 // ==========================================
-// FLOW: Email → OTP → Password → Done
+// CHECK FOR AUTH REDIRECT (from email confirmation link)
 // ==========================================
+async function handleAuthRedirect() {
+    try {
+        const sb = await getSupabase();
 
-// Step 1: User enters email only → Supabase sends OTP
+        // Check if we have a session (user just confirmed email via link)
+        const { data: { session } } = await sb.auth.getSession();
+
+        if (session) {
+            localStorage.setItem('apex_jwt_token', session.access_token);
+            switchView(successView);
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+            return true;
+        }
+    } catch (e) {
+        console.warn("No active session on load", e);
+    }
+    return false;
+}
+
+// ==========================================
+// SIGNUP: Email + Password → Confirmation Email
+// ==========================================
 if (signupForm) {
     signupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
         const btn = document.getElementById('signup-btn');
 
-        btn.textContent = 'Sending...';
-        btn.disabled = true;
-
-        try {
-            const sb = await getSupabase();
-
-            // Send OTP to email using Supabase magic link / OTP
-            const { data, error } = await sb.auth.signInWithOtp({
-                email: email,
-            });
-
-            if (error) throw error;
-
-            // Move to OTP verification screen
-            currentEmail = email;
-            document.getElementById('verify-subtitle').textContent = `We sent a 6-digit code to ${email}.`;
-            switchView(verifyView);
-
-        } catch (error) {
-            showError(error.message);
-        } finally {
-            btn.textContent = 'Verify Email';
-            btn.disabled = false;
-        }
-    });
-}
-
-// Step 2: User enters OTP → Supabase verifies email
-if (verifyForm) {
-    verifyForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const code = document.getElementById('verify-code').value;
-        const btn = document.getElementById('verify-btn');
-
-        btn.textContent = 'Verifying...';
-        btn.disabled = true;
-
-        try {
-            const sb = await getSupabase();
-
-            const { data, error } = await sb.auth.verifyOtp({
-                email: currentEmail,
-                token: code,
-                type: 'email'
-            });
-
-            if (error) throw error;
-
-            // Email verified! Now let user set their password.
-            switchView(passwordView);
-
-        } catch (error) {
-            showError(error.message);
-        } finally {
-            btn.textContent = 'Verify Account';
-            btn.disabled = false;
-        }
-    });
-}
-
-// Step 3: User sets password → Supabase updates user
-if (passwordForm) {
-    passwordForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const password = document.getElementById('set-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const btn = document.getElementById('password-btn');
-
-        // Check passwords match
+        // Validate passwords
         if (password !== confirmPassword) {
             showError('Passwords do not match.');
             return;
@@ -210,31 +165,24 @@ if (passwordForm) {
             return;
         }
 
-        btn.textContent = 'Creating...';
+        btn.textContent = 'Creating Account...';
         btn.disabled = true;
 
         try {
             const sb = await getSupabase();
 
-            // Update the user's password (user is already logged in after OTP verify)
-            const { data, error } = await sb.auth.updateUser({
-                password: password
+            const { data, error } = await sb.auth.signUp({
+                email: email,
+                password: password,
             });
 
             if (error) throw error;
 
-            // Get the session for JWT
-            const { data: sessionData } = await sb.auth.getSession();
-            if (sessionData.session) {
-                localStorage.setItem('apex_jwt_token', sessionData.session.access_token);
-            }
-
-            // Account fully created!
-            switchView(successView);
-
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2000);
+            // Show "check your email" view
+            currentEmail = email;
+            document.getElementById('verify-subtitle').textContent =
+                `We sent a confirmation link to ${email}. Click it to verify your account.`;
+            switchView(verifyView);
 
         } catch (error) {
             showError(error.message);
@@ -284,5 +232,10 @@ if (loginForm) {
     });
 }
 
-// Initialize Supabase immediately
+// ==========================================
+// INIT
+// ==========================================
 initSupabase();
+
+// Check if user just came back from email confirmation link
+handleAuthRedirect();

@@ -3,36 +3,61 @@
 // ==========================================
 
 let supabaseClient = null;
+let supabaseReady = null; // Promise that resolves when Supabase is initialized
 
 function initSupabase() {
-    // Option 1: Use local config.js (for Live Server / local dev)
-    if (window.APEX_CONFIG && window.APEX_CONFIG.SUPABASE_URL && window.APEX_CONFIG.SUPABASE_URL !== 'https://your-project.supabase.co') {
+    supabaseReady = new Promise(async (resolve) => {
+        // Option 1: Use local config.js (for Live Server / local dev)
+        if (window.APEX_CONFIG && window.APEX_CONFIG.SUPABASE_URL && window.APEX_CONFIG.SUPABASE_URL !== 'https://your-project.supabase.co') {
+            try {
+                supabaseClient = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
+                console.log("Supabase initialized from config.js");
+                resolve(true);
+                return;
+            } catch (e) {
+                console.warn("Failed to init Supabase from config.js", e);
+            }
+        }
+
+        // Option 2: Fetch from /api/env (Vercel deployment)
         try {
-            supabaseClient = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
-            console.log("Supabase initialized from config.js");
+            const response = await fetch('/api/env');
+            if (response.ok) {
+                const config = await response.json();
+                if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
+                    supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+                    console.log("Supabase initialized from /api/env");
+                    resolve(true);
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not reach /api/env, trying direct init...", e);
+        }
+
+        // Option 3: Direct initialization (anon key is public by design)
+        try {
+            const url = 'https://mhxmxqfpotvjkfmmjjkr.supabase.co';
+            const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oeG14cWZwb3R2amtmbW1qamtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzczNzYsImV4cCI6MjA5NzE1MzM3Nn0.IEwHWc5gpgf3wDG3e-1gju-bibkJFQvGQbDgXmbka_s';
+            supabaseClient = window.supabase.createClient(url, key);
+            console.log("Supabase initialized directly");
+            resolve(true);
             return;
         } catch (e) {
-            console.warn("Failed to init Supabase from config.js", e);
+            console.error("All Supabase init methods failed", e);
         }
-    }
 
-    // Option 2: Use /api/env route (for Vercel deployment)
-    fetch('/api/env')
-        .then(response => {
-            if (!response.ok) throw new Error('API returned ' + response.status);
-            return response.json();
-        })
-        .then(config => {
-            if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
-                supabaseClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-                console.log("Supabase initialized from /api/env");
-            } else {
-                console.warn("Supabase credentials missing from /api/env");
-            }
-        })
-        .catch(e => {
-            console.warn("Could not reach /api/env. Add your keys to config.js for local dev.", e);
-        });
+        resolve(false);
+    });
+}
+
+// Helper: wait for Supabase to be ready before any auth action
+async function getSupabase() {
+    await supabaseReady;
+    if (!supabaseClient) {
+        throw new Error('Supabase could not be initialized. Check your credentials.');
+    }
+    return supabaseClient;
 }
 
 // ==========================================
@@ -110,10 +135,10 @@ if (signupForm) {
         btn.disabled = true;
 
         try {
-            if (!supabaseClient) throw new Error('Supabase not connected. Please run via Vercel.');
+            const sb = await getSupabase();
 
             // Send OTP to email using Supabase magic link / OTP
-            const { data, error } = await supabaseClient.auth.signInWithOtp({
+            const { data, error } = await sb.auth.signInWithOtp({
                 email: email,
             });
 
@@ -144,9 +169,9 @@ if (verifyForm) {
         btn.disabled = true;
 
         try {
-            if (!supabaseClient) throw new Error('Supabase not connected.');
+            const sb = await getSupabase();
 
-            const { data, error } = await supabaseClient.auth.verifyOtp({
+            const { data, error } = await sb.auth.verifyOtp({
                 email: currentEmail,
                 token: code,
                 type: 'email'
@@ -189,17 +214,17 @@ if (passwordForm) {
         btn.disabled = true;
 
         try {
-            if (!supabaseClient) throw new Error('Supabase not connected.');
+            const sb = await getSupabase();
 
             // Update the user's password (user is already logged in after OTP verify)
-            const { data, error } = await supabaseClient.auth.updateUser({
+            const { data, error } = await sb.auth.updateUser({
                 password: password
             });
 
             if (error) throw error;
 
             // Get the session for JWT
-            const { data: sessionData } = await supabaseClient.auth.getSession();
+            const { data: sessionData } = await sb.auth.getSession();
             if (sessionData.session) {
                 localStorage.setItem('apex_jwt_token', sessionData.session.access_token);
             }
@@ -234,9 +259,9 @@ if (loginForm) {
         btn.disabled = true;
 
         try {
-            if (!supabaseClient) throw new Error('Supabase not connected. Please run via Vercel.');
+            const sb = await getSupabase();
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
+            const { data, error } = await sb.auth.signInWithPassword({
                 email: email,
                 password: password,
             });
@@ -259,6 +284,5 @@ if (loginForm) {
     });
 }
 
-// Initialize Supabase in the background
+// Initialize Supabase immediately
 initSupabase();
-

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APEX AI | Complete Your Profile</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .onboarding-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background-color: #333;
+            border-radius: 2px;
+            margin-bottom: 3rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #ffffff;
+            width: 25%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        p.subtitle {
+            color: #a1a1aa;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #e4e4e7;
+            font-weight: 500;
+        }
+
+        .input-group input[type="number"], .input-group select {
+            width: 100%;
+            padding: 1rem;
+            background-color: #18181b;
+            border: 1px solid #3f3f46;
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .input-group input[type="number"]:focus, .input-group select:focus {
+            outline: none;
+            border-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .option-card {
+            background-color: #18181b;
+            border: 1px solid #3f3f46;
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .option-card:hover {
+            border-color: #71717a;
+            transform: translateY(-2px);
+        }
+
+        .option-card.selected {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        .option-card.selected h3 {
+            color: #000000;
+        }
+
+        .option-card h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+            transition: color 0.2s;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-prev {
+            background-color: transparent;
+            color: #a1a1aa;
+        }
+
+        .btn-prev:hover {
+            color: #ffffff;
+        }
+
+        .btn-next, .btn-submit {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .btn-next:hover, .btn-submit:hover {
+            background-color: #e4e4e7;
+            transform: translateY(-1px);
+        }
+        
+        .btn-next:disabled, .btn-submit:disabled {
+            background-color: #52525b;
+            color: #a1a1aa;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="onboarding-container">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <form id="onboarding-form">
+            <!-- Step 1: Basic Info -->
+            <div class="step active" id="step-1">
+                <h2>Basic Information</h2>
+                <p class="subtitle">Let's start with the basics to personalize your experience.</p>
+                
+                <div class="input-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" min="14" max="120" placeholder="e.g. 25" required>
+                    <div class="error-message" id="age-error">Please enter a valid age.</div>
+                </div>
+
+                <div class="input-group">
+                    <label>Gender</label>
+                    <div class="options-grid">
+                        <div class="option-card" data-group="gender" data-value="Male"><h3>Male</h3></div>
+                        <div class="option-card" data-group="gender" data-value="Female"><h3>Female</h3></div>
+                        <div class="option-card" style="grid-column: span 2;" data-group="gender" data-value="Other"><h3>Other</h3></div>
+                    </div>
+                    <input type="hidden" id="gender" name="gender" required>
+                    <div class="error-message" id="gender-error">Please select a gender.</div>
+                </div>
+            </div>
+
+            <!-- Step 2: Body Metrics -->
+            <div class="step" id="step-2">
+                <h2>Body Metrics</h2>
+                <p class="subtitle">This helps us calculate your specific needs.</p>
+                
+                <div class="input-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" name="weight" step="0.1" min="30" max="300" placeholder="e.g. 75" required>
+                    <div class="error-message" id="weight-error">Please enter a valid weight.</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" name="height" min="100" max="250" placeholder="e.g. 180" required>
+                    <div class="error-message" id="height-error">Please enter a valid height.</div>
+                </div>
+            </div>
+
+            <!-- Step 3: Fitness Goal -->
+            <div class="step" id="step-3">
+                <h2>Fitness Goal</h2>
+                <p class="subtitle">What are you looking to achieve?</p>
+                
+                <div class="options-grid" style="grid-template-columns: 1fr;">
+                    <div class="option-card" data-group="goal" data-value="Muscle Gain"><h3>Muscle Gain</h3></div>
+                    <div class="option-card" data-group="goal" data-value="Fat Loss"><h3>Fat Loss</h3></div>
+                    <div class="option-card" data-group="goal" data-value="Recomposition"><h3>Recomposition</h3></div>
+                    <div class="option-card" data-group="goal" data-value="Strength"><h3>Strength</h3></div>
+                </div>
+                <input type="hidden" id="goal" name="goal" required>
+                <div class="error-message" id="goal-error">Please select a goal.</div>
+            </div>
+
+            <!-- Step 4: Experience Level -->
+            <div class="step" id="step-4">
+                <h2>Experience Level</h2>
+                <p class="subtitle">How long have you been training?</p>
+                
+                <div class="options-grid" style="grid-template-columns: 1fr;">
+                    <div class="option-card" data-group="experience" data-value="Beginner"><h3>Beginner</h3></div>
+                    <div class="option-card" data-group="experience" data-value="Intermediate"><h3>Intermediate</h3></div>
+                    <div class="option-card" data-group="experience" data-value="Advanced"><h3>Advanced</h3></div>
+                </div>
+                <input type="hidden" id="experience" name="experience" required>
+                <div class="error-message" id="experience-error">Please select your experience level.</div>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn-prev" id="btn-prev" style="visibility: hidden;">Back</button>
+                <button type="button" class="btn-next" id="btn-next">Continue</button>
+                <button type="submit" class="btn-submit" id="btn-submit" style="display: none;">Complete Setup</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Auth Guard
+            const token = localStorage.getItem('apex_jwt_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Initialize Supabase silently to get userId
+            let supabaseClient = null;
+            if (window.APEX_CONFIG && window.APEX_CONFIG.SUPABASE_URL && window.APEX_CONFIG.SUPABASE_URL !== 'https://your-project.supabase.co') {
+                supabaseClient = window.supabase.createClient(window.APEX_CONFIG.SUPABASE_URL, window.APEX_CONFIG.SUPABASE_ANON_KEY);
+            } else {
+                const url = 'https://mhxmxqfpotvjkfmmjjkr.supabase.co';
+                const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oeG14cWZwb3R2amtmbW1qamtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NzczNzYsImV4cCI6MjA5NzE1MzM3Nn0.IEwHWc5gpgf3wDG3e-1gju-bibkJFQvGQbDgXmbka_s';
+                supabaseClient = window.supabase.createClient(url, key);
+            }
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const userId = session.user.id;
+
+            // Optional: double check if already onboarded to prevent re-doing
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_profiles')
+                    .select('onboardingCompleted')
+                    .eq('userId', userId)
+                    .single();
+                
+                if (data && data.onboardingCompleted) {
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            } catch (e) {
+                console.error("Error checking onboarding status", e);
+            }
+
+            // UI Logic
+            let currentStep = 1;
+            const totalSteps = 4;
+            
+            const steps = document.querySelectorAll('.step');
+            const btnNext = document.getElementById('btn-next');
+            const btnPrev = document.getElementById('btn-prev');
+            const btnSubmit = document.getElementById('btn-submit');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // Handle option cards selection
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const group = this.getAttribute('data-group');
+                    const value = this.getAttribute('data-value');
+                    
+                    // Remove selected class from others in same group
+                    document.querySelectorAll(`.option-card[data-group="${group}"]`).forEach(c => c.classList.remove('selected'));
+                    
+                    // Add to clicked
+                    this.classList.add('selected');
+                    
+                    // Update hidden input
+                    document.getElementById(group).value = value;
+                    
+                    // Hide error
+                    document.getElementById(`${group}-error`).style.display = 'none';
+                });
+            });
+
+            function validateStep(stepIndex) {
+                let isValid = true;
+                if (stepIndex === 1) {
+                    const age = document.getElementById('age').value;
+                    const gender = document.getElementById('gender').value;
+                    if (!age || age < 14 || age > 120) {
+                        document.getElementById('age-error').style.display = 'block';
+                        isValid = false;
+                    } else {
+                        document.getElementById('age-error').style.display = 'none';
+                    }
+                    if (!gender) {
+                        document.getElementById('gender-error').style.display = 'block';
+                        isValid = false;
+                    }
+                } else if (stepIndex === 2) {
+                    const weight = document.getElementById('weight').value;
+                    const height = document.getElementById('height').value;
+                    if (!weight || weight < 30 || weight > 300) {
+                        document.getElementById('weight-error').style.display = 'block';
+                        isValid = false;
+                    } else {
+                        document.getElementById('weight-error').style.display = 'none';
+                    }
+                    if (!height || height < 100 || height > 250) {
+                        document.getElementById('height-error').style.display = 'block';
+                        isValid = false;
+                    } else {
+                        document.getElementById('height-error').style.display = 'none';
+                    }
+                } else if (stepIndex === 3) {
+                    const goal = document.getElementById('goal').value;
+                    if (!goal) {
+                        document.getElementById('goal-error').style.display = 'block';
+                        isValid = false;
+                    }
+                } else if (stepIndex === 4) {
+                    const experience = document.getElementById('experience').value;
+                    if (!experience) {
+                        document.getElementById('experience-error').style.display = 'block';
+                        isValid = false;
+                    }
+                }
+                return isValid;
+            }
+
+            function updateUI() {
+                steps.forEach((step, index) => {
+                    if (index + 1 === currentStep) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+
+                progressBar.style.width = `${(currentStep / totalSteps) * 100}%`;
+
+                if (currentStep === 1) {
+                    btnPrev.style.visibility = 'hidden';
+                } else {
+                    btnPrev.style.visibility = 'visible';
+                }
+
+                if (currentStep === totalSteps) {
+                    btnNext.style.display = 'none';
+                    btnSubmit.style.display = 'block';
+                } else {
+                    btnNext.style.display = 'block';
+                    btnSubmit.style.display = 'none';
+                }
+            }
+
+            btnNext.addEventListener('click', () => {
+                if (validateStep(currentStep)) {
+                    currentStep++;
+                    updateUI();
+                }
+            });
+
+            btnPrev.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateUI();
+                }
+            });
+
+            document.getElementById('onboarding-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!validateStep(currentStep)) return;
+
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Saving...';
+
+                const payload = {
+                    userId: userId,
+                    age: document.getElementById('age').value,
+                    gender: document.getElementById('gender').value,
+                    weight: document.getElementById('weight').value,
+                    height: document.getElementById('height').value,
+                    goal: document.getElementById('goal').value,
+                    experience: document.getElementById('experience').value
+                };
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('user_profiles')
+                        .upsert({
+                            userId: payload.userId,
+                            age: parseInt(payload.age),
+                            gender: payload.gender,
+                            weight: parseFloat(payload.weight),
+                            height: parseFloat(payload.height),
+                            goal: payload.goal,
+                            experience: payload.experience,
+                            onboardingCompleted: true
+                        });
+
+                    if (error) {
+                        console.error('Supabase error:', error);
+                        alert('Error saving data: ' + error.message);
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Complete Setup';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Complete Setup';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

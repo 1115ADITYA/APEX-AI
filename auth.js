@@ -122,6 +122,26 @@ if (window.location.hash === '#signup') {
 // ==========================================
 // CHECK FOR AUTH REDIRECT (from email confirmation link)
 // ==========================================
+
+async function checkOnboardingAndRedirect(session) {
+    try {
+        const sb = await getSupabase();
+        const { data, error } = await sb
+            .from('user_profiles')
+            .select('onboardingCompleted')
+            .eq('userId', session.user.id)
+            .single();
+
+        if (data && data.onboardingCompleted) {
+            window.location.href = 'dashboard.html';
+            return;
+        }
+    } catch (e) {
+        console.error("Error checking onboarding status", e);
+    }
+    window.location.href = 'onboarding.html';
+}
+
 async function handleAuthRedirect() {
     try {
         const sb = await getSupabase();
@@ -133,12 +153,12 @@ async function handleAuthRedirect() {
             localStorage.setItem('apex_jwt_token', session.access_token);
             switchView(successView);
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                checkOnboardingAndRedirect(session);
             }, 2000);
             return true;
         }
     } catch (e) {
-        console.warn("No active session on load", e);
+        console.error("No active session on load", e);
     }
     return false;
 }
@@ -183,7 +203,7 @@ if (signupForm) {
                 localStorage.setItem('apex_jwt_token', data.session.access_token);
                 switchView(successView);
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
+                    checkOnboardingAndRedirect(data.session);
                 }, 2000);
             } else {
                 // Email confirmation is ON, show verify view
@@ -229,7 +249,7 @@ if (loginForm) {
             switchView(successView);
 
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                checkOnboardingAndRedirect(data.session);
             }, 2000);
 
         } catch (error) {

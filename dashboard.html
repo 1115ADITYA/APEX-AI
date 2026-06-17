@@ -73,6 +73,22 @@
                 return;
             }
 
+            // 4. Check onboarding status
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_profiles')
+                    .select('onboardingCompleted')
+                    .eq('userId', session.user.id)
+                    .single();
+
+                if (!data || !data.onboardingCompleted) {
+                    window.location.href = 'onboarding.html';
+                    return;
+                }
+            } catch (e) {
+                console.error("Error checking onboarding status", e);
+            }
+
             // 4. Setup Logout button
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 await supabaseClient.auth.signOut();

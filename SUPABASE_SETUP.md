@@ -49,3 +49,39 @@ This reads your `.env` file and serves the app locally with the API route workin
 2. Import the repo in [vercel.com](https://vercel.com).
 3. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` as **Environment Variables** in the Vercel project settings.
 4. Deploy!
+
+### 6. Database Setup (user_profiles)
+Run the following SQL in your Supabase SQL Editor to create the table and enable Row Level Security (RLS) so that users can only access their own profile data:
+
+```sql
+-- Create the table
+create table public.user_profiles (
+  "userId" uuid not null references auth.users(id) on delete cascade,
+  age integer not null,
+  gender text not null,
+  weight numeric not null,
+  height numeric not null,
+  goal text not null,
+  experience text not null,
+  "onboardingCompleted" boolean default false,
+  "createdAt" timestamp with time zone default timezone('utc'::text, now()) not null,
+  "updatedAt" timestamp with time zone default timezone('utc'::text, now()) not null,
+  primary key ("userId")
+);
+
+-- Enable RLS
+alter table public.user_profiles enable row level security;
+
+-- Create Policies
+create policy "Users can insert their own profile."
+  on public.user_profiles for insert
+  with check ( auth.uid() = "userId" );
+
+create policy "Users can view own profile."
+  on public.user_profiles for select
+  using ( auth.uid() = "userId" );
+
+create policy "Users can update own profile."
+  on public.user_profiles for update
+  using ( auth.uid() = "userId" );
+```

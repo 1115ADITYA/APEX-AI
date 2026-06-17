@@ -10,44 +10,250 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation */
+        .top-nav {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: rgba(24, 24, 27, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #27272a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3f3f46;
+            display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-        }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        p {
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            font-weight: 600;
             font-size: 1.2rem;
-            color: #94a3b8;
+            color: #ffffff;
+            border: 2px solid #52525b;
+        }
+
+        .profile-btn:hover {
+            transform: scale(1.05);
+            background-color: #52525b;
+            border-color: #ffffff;
+        }
+
+        /* Main Content */
+        .dashboard-main {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .dashboard-main h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .dashboard-main p {
+            font-size: 1.2rem;
+            color: #a1a1aa;
+            max-width: 600px;
+            margin: 0 auto 3rem auto;
+        }
+
+        /* Profile Side Panel */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 40;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .profile-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 100%;
+            max-width: 400px;
+            height: 100%;
+            background-color: #09090b;
+            border-left: 1px solid #27272a;
+            z-index: 50;
+            padding: 2rem;
+            box-sizing: border-box;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-panel.active {
+            right: 0;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
         }
-        .logout-btn {
-            background-color: #3b82f6;
-            color: white;
+
+        .panel-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
             border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 0.5rem;
+            color: #a1a1aa;
+            font-size: 2rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            line-height: 1;
+            transition: color 0.2s;
         }
+
+        .close-btn:hover {
+            color: #ffffff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: auto;
+        }
+
+        .stat-card {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-card span {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card strong {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .logout-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
         .logout-btn:hover {
-            background-color: #2563eb;
+            background-color: #e4e4e7;
+            transform: translateY(-2px);
         }
+
     </style>
 </head>
 <body>
-    <h1>Dashboard</h1>
-    <p>Welcome to the matrix. You are successfully logged in.</p>
-    <button class="logout-btn" id="logout-btn">Logout</button>
+
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="logo">APEX AI</div>
+        <div class="profile-btn" id="profile-btn" title="View Profile">
+            U
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-main">
+        <h1>Dashboard</h1>
+        <p>Welcome to the matrix. Your personalized intelligence feed will appear here soon.</p>
+    </main>
+
+    <!-- Overlay & Profile Panel -->
+    <div class="overlay" id="overlay"></div>
+    <div class="profile-panel" id="profile-panel">
+        <div class="panel-header">
+            <h2>Profile Overview</h2>
+            <button class="close-btn" id="close-btn">&times;</button>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" style="grid-column: span 2;">
+                <span>Goal</span>
+                <strong id="p-goal">Loading...</strong>
+            </div>
+            <div class="stat-card" style="grid-column: span 2;">
+                <span>Experience</span>
+                <strong id="p-experience">Loading...</strong>
+            </div>
+            <div class="stat-card">
+                <span>Weight</span>
+                <strong id="p-weight">-- kg</strong>
+            </div>
+            <div class="stat-card">
+                <span>Height</span>
+                <strong id="p-height">-- cm</strong>
+            </div>
+            <div class="stat-card">
+                <span>Age</span>
+                <strong id="p-age">--</strong>
+            </div>
+            <div class="stat-card">
+                <span>Gender</span>
+                <strong id="p-gender">--</strong>
+            </div>
+        </div>
+
+        <button class="logout-btn" id="logout-btn">Log Out</button>
+    </div>
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -64,20 +270,24 @@
                 supabaseClient = window.supabase.createClient(url, key);
             }
 
-            // 2. Check session in the background
+            // 2. Check session
             const { data: { session } } = await supabaseClient.auth.getSession();
             
-            // 3. If no session, silently boot back to login
             if (!session) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // 4. Check onboarding status
+            // Set the avatar initial based on email
+            if (session.user.email) {
+                document.getElementById('profile-btn').textContent = session.user.email.charAt(0).toUpperCase();
+            }
+
+            // 3. Check onboarding status & Fetch full profile data
             try {
                 const { data, error } = await supabaseClient
                     .from('user_profiles')
-                    .select('onboardingCompleted')
+                    .select('*')
                     .eq('userId', session.user.id)
                     .single();
 
@@ -85,11 +295,40 @@
                     window.location.href = 'onboarding.html';
                     return;
                 }
+
+                // 4. Bind data to profile panel
+                document.getElementById('p-goal').textContent = data.goal;
+                document.getElementById('p-experience').textContent = data.experience;
+                document.getElementById('p-weight').textContent = data.weight + ' kg';
+                document.getElementById('p-height').textContent = data.height + ' cm';
+                document.getElementById('p-age').textContent = data.age;
+                document.getElementById('p-gender').textContent = data.gender;
+
             } catch (e) {
-                console.error("Error checking onboarding status", e);
+                console.error("Error fetching profile", e);
             }
 
-            // 4. Setup Logout button
+            // 5. UI Logic for Profile Panel
+            const profileBtn = document.getElementById('profile-btn');
+            const profilePanel = document.getElementById('profile-panel');
+            const overlay = document.getElementById('overlay');
+            const closeBtn = document.getElementById('close-btn');
+
+            function openPanel() {
+                profilePanel.classList.add('active');
+                overlay.classList.add('active');
+            }
+
+            function closePanel() {
+                profilePanel.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+
+            profileBtn.addEventListener('click', openPanel);
+            closeBtn.addEventListener('click', closePanel);
+            overlay.addEventListener('click', closePanel);
+
+            // 6. Setup Logout button
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 await supabaseClient.auth.signOut();
                 localStorage.removeItem('apex_jwt_token');
